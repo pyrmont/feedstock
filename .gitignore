@@ -1,0 +1,12 @@
+/.bundle
+/.ruby-version
+/.yardoc
+/_site/
+/_yardoc/
+/coverage/
+/doc/
+/log/
+/pkg/
+/vendor/
+/tmp/
+*.swp
