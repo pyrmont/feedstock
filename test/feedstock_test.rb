@@ -63,11 +63,12 @@ class FeedstockTest < Minitest::Test
                      "summary" => "Summary 2" } ],
                  @fs.instance_variable_get(:@entries)
     
-    rules = { "entries" => { "content!" => "div" } }
+    rules = { "entries" => { "content" => { "path" => "div",
+                                            "type" => "cdata" } } }
     @fs.extract_entries page, rules
 
-    assert_equal [ { "content!" => "<h1>Title 1</h1>\n<h2>Summary 1</h2>" },
-                   { "content!" => "<h1>Title 2</h1>\n<h2>Summary 2</h2>" } ],
+    assert_equal [ { "content" => "<h1>Title 1</h1>\n<h2>Summary 1</h2>" },
+                   { "content" => "<h1>Title 2</h1>\n<h2>Summary 2</h2>" } ],
                  @fs.instance_variable_get(:@entries)
   end
 
@@ -81,7 +82,10 @@ class FeedstockTest < Minitest::Test
 
     assert File.read("test/data/feed1.xml"), @fs.instance_variable_get(:@feed)
     
-    entries = [ { "id" => "https://example.org/1", "title" => "A post", "updated" => "1/1/1977", "content!" => "Some <em>content</em>!" } ]
+    entries = [ { "id" => "https://example.org/1",
+                  "title" => "A post",
+                  "updated" => "1/1/1977",
+                  "content" => "Some <em>content</em>!" } ]
     @fs.create_feed template_file, info, entries
 
     assert File.read("test/data/feed2.xml"), @fs.instance_variable_get(:@feed)

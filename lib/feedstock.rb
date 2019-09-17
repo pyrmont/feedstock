@@ -39,10 +39,13 @@ class Feedstock
     @info = Hash.new
     
     rules['info'].each do |name, rule|
-      path, type = unpack rule
-      page.css(path).each do |match|
-        @info[name] = format match.content, type
-      end
+      literal, path, type = unpack rule
+      @info[name] = if literal.nil?
+                      match = page.at_css path
+                      format match, type
+                    else
+                      literal
+                    end
     end
 
     @info
@@ -51,15 +54,20 @@ class Feedstock
   def extract_entries(page = nil, rules = nil)
     page ||= @page
     rules ||= @rules
+    literals = Hash.new
     @entries = Array.new
 
     rules['entries'].each do |name, rule|
-      page.css(rule).each.with_index do |match, i|
+      literal, path, type = unpack rule
+      next literals.merge!({ name => literal }) unless literal.nil?
+      page.css(path).each.with_index do |match, i|
         @entries[i] = Hash.new if @entries[i].nil?
-        content = name.end_with?("!") ? match.inner_html
-                                      : match.content
-        @entries[i].merge!({ name => content })
+        @entries[i].merge!({ name => format(match, type) })
       end
+    end
+
+    unless literals.empty?
+      @entries.each{ |entry| entry.merge!(literals) }
     end
 
     @entries
@@ -76,22 +84,28 @@ class Feedstock
 
   private def unpack(rule)
     if rule.is_a? Hash
+      literal = rule["literal"]
       path = rule["path"]
       type = rule["type"]
     else
+      literal = nil
       path = rule
       type = "text"
     end
 
-    [path, type]
+    [literal, path, type]
   end
 
-  private def format(content, type)
-    return content if type == "text"
+  private def format(match, type)
+    return "" if match.nil?
 
     case type
+    when "cdata"
+      match.inner_html
     when "datetime"
-      Timeliness.parse content
+      Timeliness.parse match.content
+    else
+      match.content
     end
   end
 end
