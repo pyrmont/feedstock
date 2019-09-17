@@ -3,6 +3,7 @@
 require "erb"
 require "nokogiri"
 require "open-uri"
+require "timeliness"
 
 class Feedstock
   def initialize(url, rules, template_file = nil)
@@ -38,8 +39,9 @@ class Feedstock
     @info = Hash.new
     
     rules['info'].each do |name, rule|
-      page.css(rule).each do |match|
-        @info[name] = match.content
+      path, type = unpack rule
+      page.css(path).each do |match|
+        @info[name] = format match.content, type
       end
     end
 
@@ -70,5 +72,26 @@ class Feedstock
 
     template = ERB.new File.read(template_file), trim_mode: ">"
     @feed = template.result_with_hash info: info, entries: entries
+  end
+
+  private def unpack(rule)
+    if rule.is_a? Hash
+      path = rule["path"]
+      type = rule["type"]
+    else
+      path = rule
+      type = "text"
+    end
+
+    [path, type]
+  end
+
+  private def format(content, type)
+    return content if type == "text"
+
+    case type
+    when "datetime"
+      Timeliness.parse content
+    end
   end
 end
