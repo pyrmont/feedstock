@@ -1,4 +1,5 @@
 source "https://rubygems.org"
 
 gem "minitest"
-gem "rake", "~> 12.3"
+gem "nokogiri"
+gem "rake"
