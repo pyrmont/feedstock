@@ -5,107 +5,90 @@ require "nokogiri"
 require "open-uri"
 require "timeliness"
 
-class Feedstock
-  def initialize(url, rules, template_file = nil)
-    @url = url
-    @rules = rules
-    @template_file = template_file || "default.xml"
+module Feedstock
+  def self.feed(url, rules, template_file = "default.xml")
+    rules   = normalise_rules rules
+    page    = download_page url
+    info    = extract_info page, rules
+    entries = extract_entries page, rules
+    feed    = create_feed info, entries, template_file
 
-    @page = nil
-    @info = nil
-    @entries = nil
-    @feed = nil
+    feed
   end
 
-  def feed
-    return @feed unless @feed.nil?
-
-    download_page
-    extract_info
-    extract_entries
-    create_feed
-
-    @feed
+  def self.create_feed(info, entries, template_file)
+    template = ERB.new File.read(template_file), trim_mode: "-"
+    template.result_with_hash info: info, entries: entries
   end
 
-  def download_page(url = nil)
-    url ||= @url
-    @page = Nokogiri::HTML open(url)
+  def self.download_page(url)
+    Nokogiri::HTML open(url)
   end
 
-  def extract_info(page = nil, rules = nil)
-    page ||= @page
-    rules ||= @rules
-    @info = Hash.new
-    
-    rules['info'].each do |name, rule|
-      literal, path, type = unpack rule
-      @info[name] = if literal.nil?
-                      match = page.at_css path
-                      format match, type
-                    else
-                      literal
-                    end
-    end
-
-    @info
-  end
-
-  def extract_entries(page = nil, rules = nil)
-    page ||= @page
-    rules ||= @rules
-    literals = Hash.new
-    @entries = Array.new
+  def self.extract_entries(page, rules)
+    static  = Hash.new
+    entries = Array.new
 
     rules['entries'].each do |name, rule|
-      literal, path, type = unpack rule
-      next literals.merge!({ name => literal }) unless literal.nil?
-      page.css(path).each.with_index do |match, i|
-        @entries[i] = Hash.new if @entries[i].nil?
-        @entries[i].merge!({ name => format(match, type) })
+      if rule["literal"]
+        static[name] = rule["literal"]
+      elsif rule["repeat"]
+        static[name] = format_content page.at_css(rule["path"]), rule
+      else
+        page.css(rule["path"]).each.with_index do |match, i|
+          entries[i] = Hash.new if entries[i].nil?
+          entries[i].merge!({ name => format_content(match, rule) })
+        end
       end
     end
 
-    unless literals.empty?
-      @entries.each{ |entry| entry.merge!(literals) }
+    unless static.empty?
+      entries.each{ |entry| entry.merge!(static) }
     end
 
-    @entries
+    entries
   end
 
-  def create_feed(template_file = nil, info = nil, entries = nil)
-    template_file ||= @template_file
-    info ||= @info
-    entries ||= @entries
+  def self.extract_info(page, rules)
+    info = Hash.new
 
-    template = ERB.new File.read(template_file), trim_mode: ">"
-    @feed = template.result_with_hash info: info, entries: entries
-  end
-
-  private def unpack(rule)
-    if rule.is_a? Hash
-      literal = rule["literal"]
-      path = rule["path"]
-      type = rule["type"]
-    else
-      literal = nil
-      path = rule
-      type = "text"
+    rules["info"].each do |name, rule|
+      if rule["literal"]
+        info[name] = literal
+      else
+        info[name] = format_content page.at_css(rule["path"]), rule
+      end
     end
 
-    [literal, path, type]
+    info
   end
 
-  private def format(match, type)
+  def self.format_content(match, rule)
     return "" if match.nil?
 
-    case type
+    case rule["type"]
     when "cdata"
-      match.inner_html
+      "<![CDATA[#{wrap_content(match.inner_html, rule)}]]>"
     when "datetime"
-      Timeliness.parse match.content
+      Timeliness.parse(wrap_content(match.content, rule)).iso8601
     else
-      match.content
+      wrap_content match.content, rule
     end
+  end
+
+  def self.normalise_rules(rules)
+    rules.keys.each do |category|
+      rules[category].each do |name, rule|
+        rules[category][name] = { "path" => rule } unless rule.is_a? Hash
+      end
+    end
+
+    rules
+  end
+
+  def self.wrap_content(content, rule)
+    return content unless rule["prepend"] || rule["append"]
+
+    "#{rule["prepend"] || ""}#{content}#{rule["append"] || ""}"
   end
 end

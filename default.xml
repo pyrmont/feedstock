@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-<% info.each do |name, value| %>
+<%- info.each do |name, value| -%>
   <<%= name %>><%= value %></<%= name %>>
-<% end %>  
-<% entries.each do |entry| %>
+<%- end -%>
+<%- entries.each do |entry| -%>
   <entry>
-  <% entry.each do |name, value| %>
-    <% if name.end_with?("!") %>
-    <<%= name.chomp("!") %>><![CDATA[<%= value %>]]></<%= name.chomp("!") %>>
-    <% else %>
+  <%- entry.each do |name, value| -%>
     <<%= name %>><%= value %></<%= name %>>
-    <% end %>
-  <% end %>
+  <%- end -%>
   </entry>
-<% end %>
+<%- end -%>
 </feed>

@@ -2,11 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>https://example.org/</id>
   <title>A feed</title>
-  <updated>1/1/1977</updated>
+  <updated>1970-01-01T00:00:00+09:00</updated>
   <entry>
     <id>https://example.org/1</id>
     <title>A post</title>
-    <updated>1/1/1977</updated>
+    <updated>1970-01-01T00:00:00+09:00</updated>
     <content><![CDATA[Some <em>content</em>!]]></content>
   </entry>
 </feed>
