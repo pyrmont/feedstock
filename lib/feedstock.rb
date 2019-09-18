@@ -6,7 +6,7 @@ require "open-uri"
 require "timeliness"
 
 module Feedstock
-  def self.feed(url, rules, template_file = "default.xml")
+  def self.feed(url, rules, template_file = "#{__dir__}/../default.xml")
     rules   = normalise_rules rules
     page    = download_page url
     info    = extract_info page, rules
@@ -54,7 +54,7 @@ module Feedstock
 
     rules["info"].each do |name, rule|
       if rule["literal"]
-        info[name] = literal
+        info[name] = rule["literal"]
       else
         info[name] = format_content page.at_css(rule["path"]), rule
       end
@@ -66,13 +66,19 @@ module Feedstock
   def self.format_content(match, rule)
     return "" if match.nil?
 
+    text = if rule["attribute"]
+             match[rule["attribute"]]
+           else
+             match.content.strip
+           end
+
     case rule["type"]
     when "cdata"
       "<![CDATA[#{wrap_content(match.inner_html, rule)}]]>"
     when "datetime"
-      "#{Timeliness.parse(wrap_content(match.content, rule))&.iso8601}"
+      "#{Timeliness.parse(wrap_content(text, rule))&.iso8601}"
     else
-      wrap_content match.content, rule
+      wrap_content text, rule
     end
   end
 
