@@ -16,8 +16,8 @@ Gem::Specification.new do |s|
   s.licenses = "Unlicense"
   s.required_ruby_version = ">= 2.5"
 
-  s.files = Dir["Gemfile", "LICENSE", "README.md", "feedstock.gemspec",
-                "lib/feedstock.rb", "lib/**/*.rb"]
+  s.files = Dir["Gemfile", "default.xml", "LICENSE", "README.md",
+                "feedstock.gemspec", "lib/feedstock.rb", "lib/**/*.rb"]
   s.require_paths = ["lib"]
   
   s.metadata["allowed_push_host"] = "https://rubygems.org"
