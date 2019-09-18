@@ -7,7 +7,7 @@ Gem.path.each do |path|
   Warning.ignore(//, path)
 end
 
-require_relative "../lib/feedstock.rb"
+require "feedstock"
 
 class FeedstockTest < Minitest::Test
   def setup

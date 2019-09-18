@@ -1,3 +1,10 @@
+PATH
+  remote: .
+  specs:
+    feedstock (0.1.0)
+      nokogiri
+      timeliness
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -13,10 +20,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  feedstock!
   minitest
-  nokogiri
   rake
-  timeliness
   warning
 
 BUNDLED WITH
