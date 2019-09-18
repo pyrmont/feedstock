@@ -44,17 +44,21 @@ class FeedstockTest < Minitest::Test
   end
 
   def test_extract_entries
+    # To write
+  end
+
+  def test_extract_entries_unwrapped
     page = Nokogiri::HTML("<html><body>
                            <h2>January 1970</h2>
                            <div><h1>Title 1</h1>\n<date>1/1/1970</date>\n<p>Summary 1</p></div>
                            <div><h1>Title 2</h1>\n<date>1/1/1970</date>\n<p>Summary 2</p></div>
                            </body></html>")
 
-    rules = { "entries" => { "title" => { "path" => "h1" },
-                             "updated" => { "path" => "date",
-                                            "type" => "datetime" },
-                             "summary" => { "path" => "p" } } }
-    entries = Feedstock.extract_entries page, rules
+    rules = { "entry" => { "title" => { "path" => "h1" },
+                           "updated" => { "path" => "date",
+                                          "type" => "datetime" },
+                           "summary" => { "path" => "p" } } }
+    entries = Feedstock.extract_entries_unwrapped page, rules
 
     expected = [ { "title" => "Title 1",
                    "updated" => "1970-01-01T00:00:00+09:00",
@@ -64,26 +68,30 @@ class FeedstockTest < Minitest::Test
                    "summary" => "Summary 2" } ]
     assert_equal expected, entries
     
-    rules = { "entries" => { "content" => { "path" => "div",
-                                            "type" => "cdata" } } }
-    entries = Feedstock.extract_entries page, rules
+    rules = { "entry" => { "content" => { "path" => "div",
+                                          "type" => "cdata" } } }
+    entries = Feedstock.extract_entries_unwrapped page, rules
 
     expected = [ { "content" => "<![CDATA[<h1>Title 1</h1>\n<date>1/1/1970</date>\n<p>Summary 1</p>]]>" },
                  { "content" => "<![CDATA[<h1>Title 2</h1>\n<date>1/1/1970</date>\n<p>Summary 2</p>]]>" } ]
     assert_equal expected, entries
     
-    rules = { "entries" => { "title" => { "path" => "h1" },
-                             "updated" => { "path" => "h2",
-                                            "type" => "datetime",
-                                            "repeat" => true,
-                                            "prepend" => "1 " } } }
-    entries = Feedstock.extract_entries page, rules
+    rules = { "entry" => { "title" => { "path" => "h1" },
+                           "updated" => { "path" => "h2",
+                                          "type" => "datetime",
+                                          "repeat" => true,
+                                          "prepend" => "1 " } } }
+    entries = Feedstock.extract_entries_unwrapped page, rules
 
     expected = [ { "title" => "Title 1",
                    "updated" => "1970-01-01T00:00:00+09:00" },
                  { "title" => "Title 2",
                    "updated" => "1970-01-01T00:00:00+09:00" } ]
     assert_equal expected, entries
+  end
+
+  def test_extract_entries_wrapped
+    # To write
   end
 
   def test_extract_info

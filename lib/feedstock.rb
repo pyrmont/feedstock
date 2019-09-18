@@ -26,10 +26,18 @@ module Feedstock
   end
 
   def self.extract_entries(page, rules)
+    if rules["entries"]
+      extract_entries_wrapped page, rules
+    else
+      extract_entries_unwrapped page, rules
+    end
+  end
+
+  def self.extract_entries_unwrapped(page, rules)
     static  = Hash.new
     entries = Array.new
 
-    rules['entries'].each do |name, rule|
+    rules["entry"].each do |name, rule|
       if rule["literal"]
         static[name] = rule["literal"]
       elsif rule["repeat"]
@@ -44,6 +52,28 @@ module Feedstock
 
     unless static.empty?
       entries.each{ |entry| entry.merge!(static) }
+    end
+
+    entries
+  end
+
+  def self.extract_entries_wrapped(page, rules)
+    entries = Array.new
+
+    page.css(rules["entries"]["path"]).each.with_index do |node, i|
+      rules["entry"].each do |name, rule|
+        entries[i] = Hash.new if entries[i].nil?
+
+        content = if rule["literal"]
+                    rule["literal"]
+                  elsif rule["repeat"]
+                    format_content page.at_css(rule["path"]), rule
+                  else
+                    format_content node.at_css(rule["path"]), rule
+                  end
+
+        entries[i].merge!({ name => content })
+      end
     end
 
     entries
@@ -84,8 +114,14 @@ module Feedstock
 
   def self.normalise_rules(rules)
     rules.keys.each do |category|
-      rules[category].each do |name, rule|
-        rules[category][name] = { "path" => rule } unless rule.is_a? Hash
+      case category
+      when "info", "entry"
+        rules[category].each do |name, rule|
+          rules[category][name] = { "path" => rule } unless rule.is_a? Hash
+        end
+      when "entries"
+        rule = rules[category]
+        rules[category] = { "path" => rule } unless rule.is_a? Hash
       end
     end
 
