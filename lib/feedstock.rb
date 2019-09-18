@@ -70,7 +70,7 @@ module Feedstock
     when "cdata"
       "<![CDATA[#{wrap_content(match.inner_html, rule)}]]>"
     when "datetime"
-      Timeliness.parse(wrap_content(match.content, rule)).iso8601
+      "#{Timeliness.parse(wrap_content(match.content, rule))&.iso8601}"
     else
       wrap_content match.content, rule
     end
@@ -89,6 +89,6 @@ module Feedstock
   def self.wrap_content(content, rule)
     return content unless rule["prepend"] || rule["append"]
 
-    "#{rule["prepend"] || ""}#{content}#{rule["append"] || ""}"
+    "#{rule["prepend"]}#{content}#{rule["append"]}"
   end
 end

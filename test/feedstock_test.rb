@@ -35,23 +35,12 @@ class FeedstockTest < Minitest::Test
 
     assert_equal File.read("test/data/feed2.xml"), feed
   end
+
   def test_download_page
     url  = "test/data/test.html"
     page = Feedstock.download_page url
    
     assert_equal Nokogiri::HTML::Document, page.class
-  end
-
-  def test_extract_info
-    page = Nokogiri::HTML("<html><body>
-                           <h1>A title</h1>
-                           <h2>A summary</h2>
-                           </body></html>")
-    rules = { "info" => { "title" => { "path" => "h1" },
-                          "summary" => { "path" => "h2" } } }
-    info = Feedstock.extract_info page, rules
-
-    assert_equal({"title" => "A title", "summary" => "A summary" }, info)
   end
 
   def test_extract_entries
@@ -95,5 +84,73 @@ class FeedstockTest < Minitest::Test
                  { "title" => "Title 2",
                    "updated" => "1970-01-01T00:00:00+09:00" } ]
     assert_equal expected, entries
+  end
+
+  def test_extract_info
+    page = Nokogiri::HTML("<html><body>
+                           <h1>A title</h1>
+                           <h2>A summary</h2>
+                           </body></html>")
+    rules = { "info" => { "title" => { "path" => "h1" },
+                          "summary" => { "path" => "h2" } } }
+    info = Feedstock.extract_info page, rules
+
+    assert_equal({"title" => "A title", "summary" => "A summary" }, info)
+  end
+
+  def test_format_content
+    page = Nokogiri::HTML("<html><body>
+                          <h1>A title</h1>
+                          <h2>1 January 1970</h2>
+                          </body></html>")
+    match1 = page.at_css("h1")
+    match2 = page.at_css("h2")
+
+    rule = Hash.new
+    content = Feedstock.format_content nil, rule
+    assert_equal "", content
+
+    rule = { "type" => "cdata" }
+    content = Feedstock.format_content match1, rule
+    assert_equal "<![CDATA[A title]]>", content
+
+    rule = { "type" => "datetime" }
+    content = Feedstock.format_content match1, rule
+    assert_equal "", content
+    content = Feedstock.format_content match2, rule
+    assert_equal "1970-01-01T00:00:00+09:00", content
+
+    rule = { "type" => false }
+    content = Feedstock.format_content match1, rule
+    assert_equal "A title", content
+  end
+
+  def test_normalise_rules
+    rules = { "info" => { "title" => { "path" => "h1" } } }
+    normalised = Feedstock.normalise_rules rules
+    assert_equal rules, normalised
+
+    rules = { "info" => { "title" => "h1", "summary" => "h2" }  }
+    normalised = Feedstock.normalise_rules rules
+    assert_equal({ "info" => { "title" => { "path" => "h1" },
+                               "summary" => {"path" => "h2" } } }, normalised)
+  end
+
+  def test_wrap_content
+    rule = Hash.new
+    content = Feedstock.wrap_content "Content", rule
+    assert_equal "Content", content
+
+    rule = { "prepend" => "Some " }
+    content = Feedstock.wrap_content "content", rule
+    assert_equal "Some content", content
+
+    rule = { "append" => "!" }
+    content = Feedstock.wrap_content "Content", rule
+    assert_equal "Content!", content
+
+    rule = { "prepend" => "'", "append" => "'?" }
+    content = Feedstock.wrap_content "Content", rule
+    assert_equal "'Content'?", content
   end
 end
