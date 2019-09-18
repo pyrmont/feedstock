@@ -10,14 +10,14 @@ Gem::Specification.new do |s|
   s.summary = "A library for creating RSS feeds from webpages"
   s.description = <<-desc.strip.gsub(/\s+/, " ")
     Feedstock is a library for extracting information from a webpage and
-    converting it into an Atom-based feed.
+    transforming it into an Atom feed.
   desc
   s.homepage = "https://github.com/pyrmont/feedstock/"
   s.licenses = "Unlicense"
   s.required_ruby_version = ">= 2.5"
 
-  s.files = Dir["Gemfile", "LICENSE", "feedstock.gemspec", "lib/feedstock.rb",
-                "lib/**/*.rb"]
+  s.files = Dir["Gemfile", "LICENSE", "README.md", "feedstock.gemspec",
+                "lib/feedstock.rb", "lib/**/*.rb"]
   s.require_paths = ["lib"]
   
   s.metadata["allowed_push_host"] = "https://rubygems.org"
