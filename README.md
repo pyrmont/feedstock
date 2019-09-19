@@ -30,12 +30,13 @@ Found a bug? I'd love to know about it. The best way is to report them in the
 
 ## Versioning
 
-Tenter uses [Semantic Versioning 2.0.0][sv2].
+Feedstock uses [Semantic Versioning 2.0.0][sv2].
 
 [sv2]: http://semver.org/
 
 ## Licence
 
-Tenter is released into the public domain. See [LICENSE.md][lc] for more details.
+Feedstock is released into the public domain. See [LICENSE.md][lc] for more
+details.
 
 [lc]: https://github.com/pyrmont/feedstock/blob/master/LICENSE.md
