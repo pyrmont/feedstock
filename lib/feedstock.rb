@@ -26,7 +26,7 @@ module Feedstock
   end
 
   def self.extract_entries(page, rules)
-    if rules["entries"]
+    if rules[:entries]
       extract_entries_wrapped page, rules
     else
       extract_entries_unwrapped page, rules
@@ -37,15 +37,15 @@ module Feedstock
     static  = Hash.new
     entries = Array.new
 
-    rules["entry"].each do |name, rule|
-      if rule["literal"]
-        static[name] = rule["literal"]
-      elsif rule["repeat"]
-        static[name] = format_content page.at_css(rule["path"]), rule
+    rules[:entry].each do |name, rule|
+      if rule[:literal]
+        static[name.to_s] = rule[:literal]
+      elsif rule[:repeat]
+        static[name.to_s] = format_content page.at_css(rule[:path]), rule
       else
-        page.css(rule["path"]).each.with_index do |match, i|
+        page.css(rule[:path]).each.with_index do |match, i|
           entries[i] = Hash.new if entries[i].nil?
-          entries[i].merge!({ name => format_content(match, rule) })
+          entries[i].merge!({ name.to_s => format_content(match, rule) })
         end
       end
     end
@@ -60,19 +60,19 @@ module Feedstock
   def self.extract_entries_wrapped(page, rules)
     entries = Array.new
 
-    page.css(rules["entries"]["path"]).each.with_index do |node, i|
-      rules["entry"].each do |name, rule|
+    page.css(rules[:entries][:path]).each.with_index do |node, i|
+      rules[:entry].each do |name, rule|
         entries[i] = Hash.new if entries[i].nil?
 
-        content = if rule["literal"]
-                    rule["literal"]
-                  elsif rule["repeat"]
-                    format_content page.at_css(rule["path"]), rule
+        content = if rule[:literal]
+                    rule[:literal]
+                  elsif rule[:repeat]
+                    format_content page.at_css(rule[:path]), rule
                   else
-                    format_content node.at_css(rule["path"]), rule
+                    format_content node.at_css(rule[:path]), rule
                   end
 
-        entries[i].merge!({ name => content })
+        entries[i].merge!({ name.to_s => content })
       end
     end
 
@@ -82,11 +82,11 @@ module Feedstock
   def self.extract_info(page, rules)
     info = Hash.new
 
-    rules["info"].each do |name, rule|
-      if rule["literal"]
-        info[name] = rule["literal"]
+    rules[:info].each do |name, rule|
+      if rule[:literal]
+        info[name.to_s] = rule[:literal]
       else
-        info[name] = format_content page.at_css(rule["path"]), rule
+        info[name.to_s] = format_content page.at_css(rule[:path]), rule
       end
     end
 
@@ -96,41 +96,58 @@ module Feedstock
   def self.format_content(match, rule)
     return "" if match.nil?
 
-    text = if rule["attribute"]
-             match[rule["attribute"]]
-           else
-             match.content.strip
-           end
+    text      = extract_content match, rule
+    processed = process_content text, rule
+    wrapped   = wrap_content processed, rule
 
-    case rule["type"]
+    case rule[:type]
     when "cdata"
-      "<![CDATA[#{wrap_content(match.inner_html, rule)}]]>"
+      "<![CDATA[#{wrapped}]]>"
     when "datetime"
-      "#{Timeliness.parse(wrap_content(text, rule))&.iso8601}"
+      "#{Timeliness.parse(wrapped)&.iso8601}"
     else
-      wrap_content text, rule
+      wrapped
     end
   end
 
   def self.normalise_rules(rules)
     rules.keys.each do |category|
       case category
-      when "info", "entry"
+      when :info, :entry
         rules[category].each do |name, rule|
-          rules[category][name] = { "path" => rule } unless rule.is_a? Hash
+          rules[category][name] = { :path => rule } unless rule.is_a? Hash
         end
-      when "entries"
+      when :entries
         rule = rules[category]
-        rules[category] = { "path" => rule } unless rule.is_a? Hash
+        rules[category] = { :path => rule } unless rule.is_a? Hash
       end
     end
 
     rules
   end
 
-  def self.wrap_content(content, rule)
-    return content unless rule["prepend"] || rule["append"]
+  def self.extract_content(node, rule)
+    case rule[:content]
+    in { attribute: attribute }
+      node[attribute]
+    in "inner_html"
+      node.inner_html
+    else
+      node.content.strip
+    end
+  end
 
-    "#{rule["prepend"]}#{content}#{rule["append"]}"
+  def self.process_content(content, rule)
+    if rule[:processor]
+      rule[:processor].call content, rule
+    else
+      content
+    end
+  end
+
+  def self.wrap_content(content, rule)
+    return content unless rule[:prepend] || rule[:append]
+
+    "#{rule[:prepend]}#{content}#{rule[:append]}"
   end
 end

@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   desc
   s.homepage = "https://github.com/pyrmont/feedstock/"
   s.licenses = "Unlicense"
-  s.required_ruby_version = ">= 2.5"
+  s.required_ruby_version = ">= 2.7"
 
   s.files = Dir["Gemfile", "default.xml", "LICENSE", "README.md",
                 "feedstock.gemspec", "lib/feedstock.rb", "lib/**/*.rb"]

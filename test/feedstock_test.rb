@@ -19,18 +19,18 @@ class FeedstockTest < Minitest::Test
 
   def test_create_feed
     template_file = "default.xml"
-    info = { "id" => "https://example.org/", "title" => "A feed", "updated" => "1970-01-01T00:00:00+09:00" }
+    info = { id: "https://example.org/", title: "A feed", updated: "1970-01-01T00:00:00+09:00" }
 
-    entries = [ { "id" => "https://example.org/1", "title" => "A post", "updated" => "1970-01-01T00:00:00+09:00" },
-                { "id" => "https://example.org/2", "title" => "A post", "updated" => "1970-01-01T00:00:00+09:00" } ]
+    entries = [ { id: "https://example.org/1", title: "A post", updated: "1970-01-01T00:00:00+09:00" },
+                { id: "https://example.org/2", title: "A post", updated: "1970-01-01T00:00:00+09:00" } ]
     feed = Feedstock.create_feed info, entries, template_file
 
     assert_equal File.read("test/data/feed1.xml"), feed
 
-    entries = [ { "id" => "https://example.org/1",
-                  "title" => "A post",
-                  "updated" => "1970-01-01T00:00:00+09:00",
-                  "content" => "<![CDATA[Some <em>content</em>!]]>" } ]
+    entries = [ { id: "https://example.org/1",
+                  title: "A post",
+                  updated: "1970-01-01T00:00:00+09:00",
+                  content: "<![CDATA[Some <em>content</em>!]]>" } ]
     feed = Feedstock.create_feed info, entries, template_file
 
     assert_equal File.read("test/data/feed2.xml"), feed
@@ -39,7 +39,7 @@ class FeedstockTest < Minitest::Test
   def test_download_page
     url  = "test/data/test.html"
     page = Feedstock.download_page url
-   
+
     assert_equal Nokogiri::HTML::Document, page.class
   end
 
@@ -54,10 +54,10 @@ class FeedstockTest < Minitest::Test
                            <div><h1>Title 2</h1>\n<date>1/1/1970</date>\n<p>Summary 2</p></div>
                            </body></html>")
 
-    rules = { "entry" => { "title" => { "path" => "h1" },
-                           "updated" => { "path" => "date",
-                                          "type" => "datetime" },
-                           "summary" => { "path" => "p" } } }
+    rules = { entry: { title: { path: "h1" },
+                       updated: { path: "date",
+                                  type: "datetime" },
+                       summary: { path: "p" } } }
     entries = Feedstock.extract_entries_unwrapped page, rules
 
     expected = [ { "title" => "Title 1",
@@ -67,20 +67,21 @@ class FeedstockTest < Minitest::Test
                    "updated" => "1970-01-01T00:00:00+09:00",
                    "summary" => "Summary 2" } ]
     assert_equal expected, entries
-    
-    rules = { "entry" => { "content" => { "path" => "div",
-                                          "type" => "cdata" } } }
+
+    rules = { entry: { content: { path: "div",
+                                  content: "inner_html",
+                                  type: "cdata" } } }
     entries = Feedstock.extract_entries_unwrapped page, rules
 
     expected = [ { "content" => "<![CDATA[<h1>Title 1</h1>\n<date>1/1/1970</date>\n<p>Summary 1</p>]]>" },
                  { "content" => "<![CDATA[<h1>Title 2</h1>\n<date>1/1/1970</date>\n<p>Summary 2</p>]]>" } ]
     assert_equal expected, entries
-    
-    rules = { "entry" => { "title" => { "path" => "h1" },
-                           "updated" => { "path" => "h2",
-                                          "type" => "datetime",
-                                          "repeat" => true,
-                                          "prepend" => "1 " } } }
+
+    rules = { entry: { title: { path: "h1" },
+                       updated: { path: "h2",
+                                  type: "datetime",
+                                  repeat: true,
+                                  prepend: "1 " } } }
     entries = Feedstock.extract_entries_unwrapped page, rules
 
     expected = [ { "title" => "Title 1",
@@ -99,8 +100,8 @@ class FeedstockTest < Minitest::Test
                            <h1>A title</h1>
                            <h2>A summary</h2>
                            </body></html>")
-    rules = { "info" => { "title" => { "path" => "h1" },
-                          "summary" => { "path" => "h2" } } }
+    rules = { info: { title: { path: "h1" },
+                      summary: { path: "h2" }}}
     info = Feedstock.extract_info page, rules
 
     assert_equal({"title" => "A title", "summary" => "A summary" }, info)
@@ -118,30 +119,53 @@ class FeedstockTest < Minitest::Test
     content = Feedstock.format_content nil, rule
     assert_equal "", content
 
-    rule = { "type" => "cdata" }
+    rule = { type: "cdata", content: "inner_html" }
     content = Feedstock.format_content match1, rule
     assert_equal "<![CDATA[A title]]>", content
 
-    rule = { "type" => "datetime" }
+    rule = { type: "datetime" }
     content = Feedstock.format_content match1, rule
     assert_equal "", content
     content = Feedstock.format_content match2, rule
     assert_equal "1970-01-01T00:00:00+09:00", content
 
-    rule = { "type" => false }
+    rule = { type: false }
     content = Feedstock.format_content match1, rule
     assert_equal "A title", content
   end
 
   def test_normalise_rules
-    rules = { "info" => { "title" => { "path" => "h1" } } }
+    rules = { info: { title: { path: "h1" } } }
     normalised = Feedstock.normalise_rules rules
     assert_equal rules, normalised
 
-    rules = { "info" => { "title" => "h1", "summary" => "h2" }  }
+    rules = { info: { title: "h1", summary: "h2" }  }
     normalised = Feedstock.normalise_rules rules
-    assert_equal({ "info" => { "title" => { "path" => "h1" },
-                               "summary" => {"path" => "h2" } } }, normalised)
+    assert_equal({ info: { title: { path: "h1" },
+                           summary: { path: "h2" } } }, normalised)
+  end
+
+  def test_extract_content
+    page = Nokogiri::HTML("<html><body>
+                          <a href=\"https://example.org/\">A link</a>
+                          <div><h1>A heading</h1></div>
+                          <p>Some text.</p>
+                          </body></html>")
+
+    match = page.at_css("a")
+    rule = { path: "a", content: { attribute: "href" } }
+    content = Feedstock.extract_content(match, rule)
+    assert_equal "https://example.org/", content
+
+    match = page.at_css("div")
+    rule = { path: "div", content: "inner_html" }
+    content = Feedstock.extract_content(match, rule)
+    assert_equal "<h1>A heading</h1>", content
+
+    match = page.at_css("p")
+    rule = { path: "p" }
+    content = Feedstock.extract_content(match, rule)
+    assert_equal "Some text.", content
   end
 
   def test_wrap_content
@@ -149,15 +173,15 @@ class FeedstockTest < Minitest::Test
     content = Feedstock.wrap_content "Content", rule
     assert_equal "Content", content
 
-    rule = { "prepend" => "Some " }
+    rule = { prepend: "Some " }
     content = Feedstock.wrap_content "content", rule
     assert_equal "Some content", content
 
-    rule = { "append" => "!" }
+    rule = { append: "!" }
     content = Feedstock.wrap_content "Content", rule
     assert_equal "Content!", content
 
-    rule = { "prepend" => "'", "append" => "'?" }
+    rule = { prepend: "'", append: "'?" }
     content = Feedstock.wrap_content "Content", rule
     assert_equal "'Content'?", content
   end

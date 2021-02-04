@@ -1,17 +1,15 @@
 PATH
   remote: .
   specs:
-    feedstock (0.1.1)
+    feedstock (0.2.0.pre.dev)
       nokogiri
       timeliness
 
 GEM
   remote: https://rubygems.org/
   specs:
-    mini_portile2 (2.5.0)
     minitest (5.14.3)
-    nokogiri (1.11.1)
-      mini_portile2 (~> 2.5.0)
+    nokogiri (1.11.1-x86_64-linux)
       racc (~> 1.4)
     racc (1.5.2)
     rake (13.0.3)
