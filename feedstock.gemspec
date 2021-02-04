@@ -19,13 +19,13 @@ Gem::Specification.new do |s|
   s.files = Dir["Gemfile", "default.xml", "LICENSE", "README.md",
                 "feedstock.gemspec", "lib/feedstock.rb", "lib/**/*.rb"]
   s.require_paths = ["lib"]
-  
+
   s.metadata["allowed_push_host"] = "https://rubygems.org"
 
   s.add_runtime_dependency "nokogiri"
   s.add_runtime_dependency "timeliness"
 
-  s.add_development_dependency "minitest" 
+  s.add_development_dependency "minitest"
   s.add_development_dependency "rake"
   s.add_development_dependency "warning"
 end

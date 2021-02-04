@@ -22,7 +22,7 @@ module Feedstock
   end
 
   def self.download_page(url)
-    Nokogiri::HTML open(url)
+    Nokogiri::HTML URI.open(url)
   end
 
   def self.extract_entries(page, rules)
