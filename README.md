@@ -50,7 +50,7 @@ Feedstock.feed url, rules, :xml, "podcast.xml"
 
 ### URL
 
-The URL should resolve to either a HTML or XML document.
+The URL should resolve to either an HTML or XML document.
 
 ### Rules
 
