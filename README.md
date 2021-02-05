@@ -63,8 +63,8 @@ matching node in the document.
 
 ##### Hash
 
-If the value is a hash, this is the _data hash_. The data hash defines the
-rules that Feedstock uses to extract data. It must contain one of two keys:
+If the value is a hash, this is a _data hash_. A data hash defines the rules
+that Feedstock uses to extract data. It must contain one of two keys:
 
 - `:literal`: The value associated with this key is used for the content of the
   XML entity. This can be useful for elements that are not on the page or that
@@ -135,7 +135,7 @@ the CSS selector will match all nodes.
 
 ##### Hash
 
-If the value is a hash, we call this the "data hash". The data hash defines the
+If the value is a hash, this is a _data hash_. A data hash defines the
 rules that Feedstock uses to extract data. It must contain one of two keys:
 
 - `:literal`: The value associated with this key is used for the content of the
