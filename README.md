@@ -1,5 +1,10 @@
 # Feedstock
 
+[![Gem Version][gem-badge]][gem-link]
+
+[gem-badge]: https://badge.fury.io/rb/feedstock.svg
+[gem-link]: https://rubygems.org/gems/feedstock
+
 Feedstock is a Ruby library for extracting information from a webpage and
 converting it into an Atom feed.
 
