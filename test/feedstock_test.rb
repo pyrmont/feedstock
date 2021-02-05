@@ -38,7 +38,7 @@ class FeedstockTest < Minitest::Test
 
   def test_download_page
     url  = "test/data/test.html"
-    page = Feedstock.download_page url
+    page = Feedstock.download_page url, :html
 
     assert_equal Nokogiri::HTML::Document, page.class
   end

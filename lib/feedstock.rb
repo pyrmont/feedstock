@@ -6,9 +6,9 @@ require "open-uri"
 require "timeliness"
 
 module Feedstock
-  def self.feed(url, rules, template_file = "#{__dir__}/../default.xml")
+  def self.feed(url, rules, format = :html, template_file = "#{__dir__}/../default.xml")
     rules   = normalise_rules rules
-    page    = download_page url
+    page    = download_page url, format
     info    = extract_info page, rules
     entries = extract_entries page, rules
     feed    = create_feed info, entries, template_file
@@ -21,8 +21,15 @@ module Feedstock
     template.result_with_hash info: info, entries: entries
   end
 
-  def self.download_page(url)
-    Nokogiri::HTML URI.open(url)
+  def self.download_page(url, format)
+    case format
+    when :html
+      Nokogiri::HTML URI.open(url)
+    when :xml
+      Nokogiri::XML URI.open(url)
+    else
+      raise "Format not recognised"
+    end
   end
 
   def self.extract_entries(page, rules)
@@ -76,7 +83,10 @@ module Feedstock
       end
     end
 
-    entries
+
+    return entries unless rules[:entries][:filter].is_a? Proc
+
+    entries.filter(&rules[:entries][:filter])
   end
 
   def self.extract_info(page, rules)
@@ -132,6 +142,8 @@ module Feedstock
       node[attribute]
     in "inner_html"
       node.inner_html
+    in "html" | "xml"
+      node.to_s
     else
       node.content.strip
     end
