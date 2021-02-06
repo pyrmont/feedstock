@@ -5,16 +5,16 @@
 [gem-badge]: https://badge.fury.io/rb/feedstock.svg
 [gem-link]: https://rubygems.org/gems/feedstock
 
-Feedstock is a Ruby library for extracting information from an HTML/XML
-document and inserting it into an ERB template. Its primary purpose is to
-create a feed for a webpage that doesn't offer one.
+Feedstock is a Ruby library for extracting information from an HTML/XML document
+and inserting it into an ERB template. Its primary purpose is to create a feed
+for a webpage that doesn't offer one.
 
 ## Rationale
 
 I love RSS feeds.
 
-That's why I think it's a shame not every website has a feed. However, even
-when a website does have a feed, sometimes it doesn't include quite the mix
+That's why I think it's a shame not every website has a feed. However, even when
+a website does have a feed, sometimes it doesn't include quite the mix
 information that I want. I made Feedstock to solve those two problems.
 
 Feedstock is a Ruby library that you can use to create an Atom or RSS feed. It

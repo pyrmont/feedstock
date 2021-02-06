@@ -1,15 +1,22 @@
 # API
 
+Feedstock provides its functionality through a single class-level method.
+
+## `Feedstock.feed`
+
 ```ruby
 Feedstock.feed(url, rules, format = :html, template = "#{__dir__}/../default.xml"
 ```
 
-## `url`
+The `feed` method takes up to four parameters and returns a String. Each
+parameter is explained in more detail below.
+
+### `url`
 
 The `url` parameter is a String and must resolve to either an HTML or XML
 document.
 
-## `rules`
+### `rules`
 
 The `rules` parameter is a Hash representing a collection of rules. `rules` has
 two mandatory keys and one optional key.
@@ -139,11 +146,11 @@ two mandatory keys and one optional key.
       can then use a Lambda to decide whether to keep or reject the entry. The
       Lambda must return a truthy value to keep the entry.
 
-## `format`
+### `format`
 
 The `format` parameter can be either `:html` or `:xml`. The default is `:html`.
 
-## `template`
+### `template`
 
 The `template` parameter should be a path to an ERB template into which the
 information and entries extracted from the document will be inserted. The ERB
