@@ -65,20 +65,22 @@ two mandatory keys and one optional key.
 
       - `:content`
 
-        The default is `nil`. The `:content` key can be set to  `"inner_html"`
-        or a _hash_ of the form `{attribute: "<attribute>"}`. If the value is
-        `"inner_html"`, Feedstock will extract the content of the node as HTML.
-        If the value is an attribute hash, Feedstock will extract the value of
-        that attribute. This is important for links, where the link itself is
-        typically the content of the `href` attribute rather than the content of
-        the `<a>` element. For all other values, the plaintext content of the
-        node is extracted.
+        The default is `nil`. The `:content` key can be set to: (1) `nil`; (2)
+        `"inner_html"`; (3) `"html"` or `"xml"`;  or (4) a _hash_ of the form
+        `{attribute: "<attribute>"}`. If the value is `"inner_html"`, Feedstock
+        will extract the content of the node as HTML. If the value is `"html"`
+        or `"xml"`, the HTML (or XML) tag and its contents are converted to a
+        String. If the value is an attribute hash, Feedstock will extract the
+        value of that attribute.  This is important for links, where the link
+        itself is typically the content of the `href` attribute rather than the
+        content of the `<a>` element. For all other values, the plaintext
+        content of the node is extracted.
 
       - `:processor`
 
         The default is `nil`. The `:processor` key can be set to a Lambda that
-	takes two arguments. The first is the extracted content, the second is
-   	he rule being processed. The content extracted by Feedstock for the
+        takes two arguments. The first is the extracted content, the second is
+        the rule being processed. The content extracted by Feedstock for the
         given path is processed by the processor. The Lambda must return a
         String.
 
@@ -90,14 +92,14 @@ two mandatory keys and one optional key.
       - `:suffix`
 
         The default is `nil`. If a suffix is provided, the value of the suffix
-	is appended to the end of the content extracted.
+        is appended to the end of the content extracted.
 
       - `:type`
 
         The default is `nil`. A user may specify `"datetime"` or `"cdata"`. If
-	the value is `"datetime"`, the content is parsed by the [Timeliness
-	library][Timeliness] to return a string. If the value is `"cdata"`, the
-	content is wrapped in `<![CDATA[` and `]]>` tags.
+        the value is `"datetime"`, the content is parsed by the [Timeliness
+        library][Timeliness] to return a string. If the value is `"cdata"`, the
+        content is wrapped in `<![CDATA[` and `]]>` tags.
 
 - `:entry`
 
