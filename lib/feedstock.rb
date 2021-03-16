@@ -7,12 +7,18 @@ require "timeliness"
 
 module Feedstock
   class << self
-    def feed(url, rules, format = :html, template_file = "#{__dir__}/../default.xml")
+    def data(url, rules, format = :html)
       page    = download_page url, format
       rules   = normalise_rules rules
 
       info    = extract_info page, rules
       entries = extract_entries page, rules
+
+      { info: info, entries: entries }
+    end
+
+    def feed(url, rules, format = :html, template_file = "#{__dir__}/../default.xml")
+      info, entries = data(url, rules, format).values_at(:info, :entries)
 
       create_feed info, entries, template_file
     end

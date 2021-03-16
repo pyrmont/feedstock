@@ -1,11 +1,23 @@
 # API
 
-Feedstock provides its functionality through a single class-level method.
+Feedstock provides its functionality through two class-level methods.
+
+## `Feedstock.data`
+
+```ruby
+Feedstock.data(url, rules, format = :html)
+```
+
+The `data` method takes up to three parameters and returns a Hash with the keys
+`:info` and `:entries`. Each parameter works the same as in `Feedstock.feed`
+and is explained in more detail below.
+
+The return value is the result of applying the rules to the URL.
 
 ## `Feedstock.feed`
 
 ```ruby
-Feedstock.feed(url, rules, format = :html, template = "#{__dir__}/../default.xml"
+Feedstock.feed(url, rules, format = :html, template = "#{__dir__}/../default.xml")
 ```
 
 The `feed` method takes up to four parameters and returns a String. Each
