@@ -10,10 +10,10 @@ GEM
   specs:
     mini_portile2 (2.8.0)
     minitest (5.14.3)
-    nokogiri (1.13.9)
+    nokogiri (1.13.10)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    racc (1.6.0)
+    racc (1.6.1)
     rake (13.0.3)
     timeliness (0.4.4)
     warning (1.1.0)
