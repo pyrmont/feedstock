@@ -6,13 +6,13 @@ class-level methods.
 ## `Feedstock::Extract`
 
 ```ruby
-Feedstock::Extract.new(selector:, [absolute:, content:, processor:, prefix:, suffix:, type:, filter:])
+Feedstock::Extract.new(selector:, absolute: nil, content: nil, processor: nil, prefix: nil, suffix: nil, type: nil, filter: nil)
 ```
 
 An Extract is a subclass of Struct. Its initialiser takes the following
 parameters.
 
-### `selector` _(Required)_
+### `selector`
 
 A String representing the path to the node in the document expressed in CSS's
 selector syntax.
@@ -23,12 +23,12 @@ initialiser. For a given rule, the order of transformation is: (1) extract; (2)
 if `processor:` is provided, process; (3) if `prefix:` or `suffix:` is
 provided, wrap; and (4) if `type:` is provided, format.
 
-### `absolute` _(Optional)_
+### `absolute`
 
 A Boolean indicating whether the selector should search from the root of the
 document.
 
-### `content` _(Optional)_
+### `content`
 
 A value indicating how to extract the content from the selected node. It can
 either be `"inner_html"`, `"html"`, `"xml"` or a Hash of the form `{attribute:
@@ -44,27 +44,27 @@ rather than the content of the `<a>` element.
 If not provided, Feedstock concatenates the text nodes in the selected node's
 subtree.
 
-### `processor` _(Optional)_
+### `processor`
 
 A Lambda that takes two arguments. The first is the extracted content, the second
 is the rule being processed. The Lambda must return a String.
 
-### `prefix` _(Optional)_
+### `prefix`
 
 A String to prepend to the content extracted.
 
-### `suffix` _(Optional)_
+### `suffix`
 
 A String to append to the content extracted.
 
-### `type` _(Optional)_
+### `type`
 
 A String representing the type of the content. Valid values are `"datetime"`
 and `"cdata"`. If the value is `"datetime"`, the content is parsed by the
 [Timeliness library][Timeliness] to return a string. If the value is `"cdata"`,
 the content is wrapped in `<![CDATA[` and `]]>` tags.
 
-### `filter` _(Optional)_
+### `filter`
 
 A Lambda that takes one argument, a Hash containing the values extracted for
 the entry. A user can then use a Lambda to decide whether to keep or reject the
