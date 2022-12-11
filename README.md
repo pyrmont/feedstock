@@ -51,17 +51,15 @@ url = "https://example.org"
 
 # Define the rules
 rules = { info: { id: url,
-                  title: "div.title",
-                  updated: "span.date" },
-          entries: "div.story",
-          entry: { id: { path: "a",
-                         content: { attribute: "href" } },
-                   title: "h2",
-                   updated: "span.date",
-                   author: "span.byline",
-                   link: { path: "a",
-                           content: { attribute: "href" } },
-                   summary: "div.summary" } }
+                  title: Feedstock::Extract.new(selector: "div.title"),
+                  updated: Feedstock::Extract.new(selector: "span.date") },
+          entry: { id: Feedstock::Extract.new(selector: "a", content: { attribute: "href" }),
+                   title: Feedstock::Extract.new(selector: "h2"),
+                   updated: Feedstock::Extract(selector: "span.date"),
+                   author: Feedstock::Extract.new(selector: "span.byline"),
+                   link: Feedstock::Extract.new(selector: "a", content: { attribute: "href" }),
+                   summary: Feedstock::Extract.new(selector: "div.summary") },
+          entries: Feedstock::Extract.new(selector: "div.story") }
 
 # Using the default format and template
 Feedstock.feed url, rules
