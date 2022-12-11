@@ -53,12 +53,14 @@ url = "https://example.org"
 rules = { info: { id: url,
                   title: Feedstock::Extract.new(selector: "div.title"),
                   updated: Feedstock::Extract.new(selector: "span.date") },
+
           entry: { id: Feedstock::Extract.new(selector: "a", content: { attribute: "href" }),
                    title: Feedstock::Extract.new(selector: "h2"),
-                   updated: Feedstock::Extract(selector: "span.date"),
+                   updated: Feedstock::Extract.new(selector: "span.date"),
                    author: Feedstock::Extract.new(selector: "span.byline"),
                    link: Feedstock::Extract.new(selector: "a", content: { attribute: "href" }),
                    summary: Feedstock::Extract.new(selector: "div.summary") },
+
           entries: Feedstock::Extract.new(selector: "div.story") }
 
 # Using the default format and template
