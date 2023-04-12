@@ -43,10 +43,9 @@ class FeedstockTest < Minitest::Test
                            <div><h1>Title 2</h1>\n<date>1/1/1970</date>\n<p>Summary 2</p></div>
                            </body></html>")
 
-    rules = { entry: { title: { path: "h1" },
-                       updated: { path: "date",
-                                  type: "datetime" },
-                       summary: { path: "p" } } }
+    rules = { entry: { title: Feedstock::Extract.new(selector: "h1"),
+                       updated: Feedstock::Extract.new(selector: "date", type: "datetime"),
+                       summary: Feedstock::Extract.new(selector: "p") } }
     entries = Feedstock.send :extract_entries_unwrapped, page, rules
 
     expected = [ { "title" => "Title 1",
@@ -57,20 +56,15 @@ class FeedstockTest < Minitest::Test
                    "summary" => "Summary 2" } ]
     assert_equal expected, entries
 
-    rules = { entry: { content: { path: "div",
-                                  content: "inner_html",
-                                  type: "cdata" } } }
+    rules = { entry: { content: Feedstock::Extract.new(selector: "div", content: "inner_html", type: "cdata") } }
     entries = Feedstock.send :extract_entries_unwrapped, page, rules
 
     expected = [ { "content" => "<![CDATA[<h1>Title 1</h1>\n<date>1/1/1970</date>\n<p>Summary 1</p>]]>" },
                  { "content" => "<![CDATA[<h1>Title 2</h1>\n<date>1/1/1970</date>\n<p>Summary 2</p>]]>" } ]
     assert_equal expected, entries
 
-    rules = { entry: { title: { path: "h1" },
-                       updated: { path: "h2",
-                                  type: "datetime",
-                                  repeat: true,
-                                  prepend: "1 " } } }
+    rules = { entry: { title: Feedstock::Extract.new(selector: "h1"),
+                       updated: Feedstock::Extract.new(selector: "h2", type: "datetime", prefix: "1 ") } }
     entries = Feedstock.send :extract_entries_unwrapped, page, rules
 
     expected = [ { "title" => "Title 1",
@@ -89,8 +83,8 @@ class FeedstockTest < Minitest::Test
                            <h1>A title</h1>
                            <h2>A summary</h2>
                            </body></html>")
-    rules = { info: { title: { path: "h1" },
-                      summary: { path: "h2" }}}
+    rules = { info: { title: Feedstock::Extract.new(selector: "h1"),
+                      summary: Feedstock::Extract.new(selector: "h2")}}
     info = Feedstock.send :extract_info, page, rules
 
     assert_equal({"title" => "A title", "summary" => "A summary" }, info)
@@ -104,34 +98,23 @@ class FeedstockTest < Minitest::Test
     match1 = page.at_css("h1")
     match2 = page.at_css("h2")
 
-    rule = Hash.new
+    rule = Feedstock::Extract.new
     content = Feedstock.send :format_content, nil, rule
     assert_equal "", content
 
-    rule = { type: "cdata", content: "inner_html" }
+    rule = Feedstock::Extract.new(type: "cdata", content: "inner_html")
     content = Feedstock.send :format_content, match1, rule
     assert_equal "<![CDATA[A title]]>", content
 
-    rule = { type: "datetime" }
+    rule = Feedstock::Extract.new(type: "datetime")
     content = Feedstock.send :format_content, match1, rule
     assert_equal "", content
     content = Feedstock.send :format_content, match2, rule
     assert_equal "1970-01-01T00:00:00+09:00", content
 
-    rule = { type: false }
+    rule = Feedstock::Extract.new(type: false)
     content = Feedstock.send :format_content, match1, rule
     assert_equal "A title", content
-  end
-
-  def test_normalise_rules
-    rules = { info: { title: { path: "h1" } } }
-    normalised = Feedstock.send :normalise_rules, rules
-    assert_equal rules, normalised
-
-    rules = { info: { title: "h1", summary: "h2" }  }
-    normalised = Feedstock.send :normalise_rules, rules
-    assert_equal({ info: { title: { path: "h1" },
-                           summary: { path: "h2" } } }, normalised)
   end
 
   def test_extract_content
@@ -142,35 +125,35 @@ class FeedstockTest < Minitest::Test
                           </body></html>")
 
     match = page.at_css("a")
-    rule = { path: "a", content: { attribute: "href" } }
+    rule = Feedstock::Extract.new(selector: "a", content: { attribute: "href" })
     content = Feedstock.send :extract_content, match, rule
     assert_equal "https://example.org/", content
 
     match = page.at_css("div")
-    rule = { path: "div", content: "inner_html" }
+    rule = Feedstock::Extract.new(selector: "div", content: "inner_html")
     content = Feedstock.send :extract_content, match, rule
     assert_equal "<h1>A heading</h1>", content
 
     match = page.at_css("p")
-    rule = { path: "p" }
+    rule = Feedstock::Extract.new(selector: "p")
     content = Feedstock.send :extract_content, match, rule
     assert_equal "Some text.", content
   end
 
   def test_wrap_content
-    rule = Hash.new
+    rule = Feedstock::Extract.new
     content = Feedstock.send :wrap_content, "Content", rule
     assert_equal "Content", content
 
-    rule = { prepend: "Some " }
+    rule = Feedstock::Extract.new(prefix: "Some ")
     content = Feedstock.send :wrap_content, "content", rule
     assert_equal "Some content", content
 
-    rule = { append: "!" }
+    rule = Feedstock::Extract.new(suffix: "!")
     content = Feedstock.send :wrap_content, "Content", rule
     assert_equal "Content!", content
 
-    rule = { prepend: "'", append: "'?" }
+    rule = Feedstock::Extract.new(prefix: "'", suffix: "'?")
     content = Feedstock.send :wrap_content, "Content", rule
     assert_equal "'Content'?", content
   end
