@@ -9,20 +9,22 @@ end
 
 require "feedstock"
 
+TZ_OFFSET = Time.now.strftime("%:z")
+
 class FeedstockTest < Minitest::Test
   def test_create_feed
     template_file = "default.xml"
-    info = { id: "https://example.org/", title: "A feed", updated: "1970-01-01T00:00:00+09:00" }
+    info = { id: "https://example.org/", title: "A feed", updated: "1970-01-01T00:00:00#{TZ_OFFSET}" }
 
-    entries = [ { id: "https://example.org/1", title: "A post", updated: "1970-01-01T00:00:00+09:00" },
-                { id: "https://example.org/2", title: "A post", updated: "1970-01-01T00:00:00+09:00" } ]
+    entries = [ { id: "https://example.org/1", title: "A post", updated: "1970-01-01T00:00:00#{TZ_OFFSET}" },
+                { id: "https://example.org/2", title: "A post", updated: "1970-01-01T00:00:00#{TZ_OFFSET}" } ]
     feed = Feedstock.send :create_feed, info, entries, template_file
 
     assert_equal File.read("test/data/feed1.xml"), feed
 
     entries = [ { id: "https://example.org/1",
                   title: "A post",
-                  updated: "1970-01-01T00:00:00+09:00",
+                  updated: "1970-01-01T00:00:00#{TZ_OFFSET}",
                   content: "<![CDATA[Some <em>content</em>!]]>" } ]
     feed = Feedstock.send :create_feed, info, entries, template_file
 
@@ -49,10 +51,10 @@ class FeedstockTest < Minitest::Test
     entries = Feedstock.send :extract_entries_unwrapped, page, rules
 
     expected = [ { "title" => "Title 1",
-                   "updated" => "1970-01-01T00:00:00+09:00",
+                   "updated" => "1970-01-01T00:00:00#{TZ_OFFSET}",
                    "summary" => "Summary 1" },
                  { "title" => "Title 2",
-                   "updated" => "1970-01-01T00:00:00+09:00",
+                   "updated" => "1970-01-01T00:00:00#{TZ_OFFSET}",
                    "summary" => "Summary 2" } ]
     assert_equal expected, entries
 
@@ -64,18 +66,47 @@ class FeedstockTest < Minitest::Test
     assert_equal expected, entries
 
     rules = { entry: { title: Feedstock::Extract.new(selector: "h1"),
-                       updated: Feedstock::Extract.new(selector: "h2", type: "datetime", prefix: "1 ") } }
+                       updated: Feedstock::Extract.new(selector: "h2", absolute: true, type: "datetime", prefix: "1 ") } }
     entries = Feedstock.send :extract_entries_unwrapped, page, rules
 
     expected = [ { "title" => "Title 1",
-                   "updated" => "1970-01-01T00:00:00+09:00" },
+                   "updated" => "1970-01-01T00:00:00#{TZ_OFFSET}" },
                  { "title" => "Title 2",
-                   "updated" => "1970-01-01T00:00:00+09:00" } ]
+                   "updated" => "1970-01-01T00:00:00#{TZ_OFFSET}" } ]
     assert_equal expected, entries
   end
 
   def test_extract_entries_wrapped
-    # To write
+    page = Nokogiri::HTML("<html><body>
+                           <h2>January 1970</h2>
+                           <div><h2>Title 1</h2>\n<date>1/1/1970</date>\n<p>Summary 1</p></div>
+                           <div><h2>Title 2</h2>\n<date>1/1/1970</date>\n<p>Summary 2</p></div>
+                           </body></html>")
+
+    rules = { entries: Feedstock::Extract.new(selector: "div"),
+              entry: { title: Feedstock::Extract.new(selector: "h2"),
+                       updated: Feedstock::Extract.new(selector: "date", type: "datetime"),
+                       summary: Feedstock::Extract.new(selector: "p") } }
+    entries = Feedstock.send :extract_entries_wrapped, page, rules
+
+    expected = [ { "title" => "Title 1",
+                   "updated" => "1970-01-01T00:00:00#{TZ_OFFSET}",
+                   "summary" => "Summary 1" },
+                 { "title" => "Title 2",
+                   "updated" => "1970-01-01T00:00:00#{TZ_OFFSET}",
+                   "summary" => "Summary 2" } ]
+    assert_equal expected, entries
+
+    rules = { entries: Feedstock::Extract.new(selector: "div"),
+              entry: { title: Feedstock::Extract.new(selector: "h2"),
+                       updated: Feedstock::Extract.new(selector: "h2", absolute: true, type: "datetime", prefix: "1 ") } }
+    entries = Feedstock.send :extract_entries_wrapped, page, rules
+
+    expected = [ { "title" => "Title 1",
+                   "updated" => "1970-01-01T00:00:00#{TZ_OFFSET}" },
+                 { "title" => "Title 2",
+                   "updated" => "1970-01-01T00:00:00#{TZ_OFFSET}" } ]
+    assert_equal expected, entries
   end
 
   def test_extract_info
@@ -110,7 +141,7 @@ class FeedstockTest < Minitest::Test
     content = Feedstock.send :format_content, match1, rule
     assert_equal "", content
     content = Feedstock.send :format_content, match2, rule
-    assert_equal "1970-01-01T00:00:00+09:00", content
+    assert_equal "1970-01-01T00:00:00#{TZ_OFFSET}", content
 
     rule = Feedstock::Extract.new(type: false)
     content = Feedstock.send :format_content, match1, rule
