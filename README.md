@@ -28,7 +28,7 @@ template but you can use your own, too.
 The [feeds.inqk.net repository][example] includes an example of how the
 Feedstock library can be used in practice.
 
-[example]: https://github.com/pyrmont/feeds.inqk.net/tree/4a95a438f8d3a707db7946238181ab76c029ee77/src/input
+[example]: https://github.com/pyrmont/feeds.inqk.net/
 "An example of using the Feedstock library"
 
 ## Installation
